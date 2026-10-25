@@ -1,0 +1,16 @@
+* text=auto
+
+# Power BI Desktop's TMDL reader requires CRLF; keep generated and checked-out
+# TMDL files in that form.
+*.tmdl text eol=crlf
+
+*.pbip text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+*.vsix binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
