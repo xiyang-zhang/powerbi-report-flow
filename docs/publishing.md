@@ -39,7 +39,7 @@ tracked file under `samples/`.
 
 - `pnpm privacy:check` must pass.
 - Confirm no API keys, database passwords, connection strings, personal paths,
-  or Strata endpoint/workspace identifiers are committed.
+  Strata model paths, or LLM/database endpoint identifiers are committed.
 - Confirm `.vscode/settings.json` is not tracked if it contains local paths.
 - Review `SECURITY.md` and `PRIVACY.md`.
 

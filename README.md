@@ -2,49 +2,49 @@
 
 A VS Code extension that runs a guided Power BI report pipeline from the Activity Bar:
 
-**profile data → design a contract → approve → build PBIP/TMDL/PBIR → validate → preview**
+**profile data → design a contract → approve → build [PBIP](https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-overview)/[TMDL](https://learn.microsoft.com/en-us/analysis-services/tmdl/tmdl-overview)/[PBIR](https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-report#power-bi-enhanced-report-format-pbir) → validate → preview**
 
-It combines the official [Power BI Report Skill](https://learn.microsoft.com/en-us/power-bi/developer/agentic/power-bi-report-skill-overview), the [Power BI Authoring MCP Server](https://learn.microsoft.com/en-us/power-bi/developer/mcp/power-bi-authoring-mcp), and the bundled `powerbi-report-author` CLI.
+It combines the official [Power BI Report Skill](https://learn.microsoft.com/en-us/power-bi/developer/agentic/power-bi-report-skill-overview), the [Power BI Authoring MCP Server](https://learn.microsoft.com/en-us/power-bi/developer/mcp/mcp-servers-overview), and the bundled [`powerbi-report-author` CLI](https://www.npmjs.com/package/@microsoft/powerbi-report-authoring-cli).
 
 ![VS Code Report Flow sidebar next to the generated SalesOverview report in Power BI Desktop](resources/screenshots/vscode-plugin-sample.png)
 
-*The sidebar configures data/report modes and builds the PBIP; the generated `SalesOverview` sample is shown open in Power BI Desktop after refresh.*
+*The sidebar configures data/report modes and builds the PBIP; the generated `SalesOverview` sample is shown open in [Power BI Desktop](https://powerbi.microsoft.com/desktop/) after refresh.*
 
 ## Features
 
 - **Data modes**
-  - **External**: SQL Server, PostgreSQL, or MySQL profiling. Fabric live-model configuration is present but MCP-backed Fabric authoring is a follow-up.
+  - **External**: SQL Server, PostgreSQL, or MySQL profiling. [Fabric](https://learn.microsoft.com/en-us/fabric/) live-model configuration is present but MCP-backed Fabric authoring is a follow-up.
   - **Local**: CSV, TSV, XLSX, XLS, or JSON. The file is copied into the generated project.
   - **Mock**: JSON schema with a seeded generator for reproducible data.
 - **Report modes**
   - **Text**: an LLM produces the canonical design contract; a deterministic fallback layout is used when no model is configured.
-  - **Existing**: extracts page sizes, visuals, text, and theme colors from a PBIR `.Report` folder or `.pbip`.
+  - **Existing**: extracts page sizes, visuals, text, and theme colors from a [PBIR](https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-report#power-bi-enhanced-report-format-pbir) `.Report` folder or `.pbip`.
   - **Image**: sends a PNG/JPEG/WebP to a vision-capable model and converts the detected layout into grid placements.
 - **Approval gate**: `_brief/report-spec.md` and `_brief/design-brief.yaml` are written first; the build refuses to run until you approve. The approval stores a SHA-256 hash of the contract.
 - **Generated project**
-  - `.pbip`, `.Report/` with PBIR pages and visuals, `.SemanticModel/` with TMDL tables and measures, `data/` CSVs.
+  - `.pbip`, `.Report/` with [PBIR](https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-report#power-bi-enhanced-report-format-pbir) pages and visuals, `.SemanticModel/` with [TMDL](https://learn.microsoft.com/en-us/analysis-services/tmdl/tmdl-overview) tables and measures, `data/` CSVs.
   - `_brief/`, `validation/validate-result.json`, and a README.
-  - M-query dimension tables (`DimRegion`, `DimProduct`, …) with many-to-one relationships from fact tables.
-- **Validation**: runs `powerbi-report-author validate` and surfaces errors/warnings in the sidebar.
-- **MCP verification**: when the EULA is accepted, the extension starts the local Power BI Authoring MCP, loads the generated TMDL, and reports table/measure counts.
-- **Preview**: detects Power BI Desktop through the report CLI (including Microsoft Store/MSIX installs), opens the generated `.pbip` with the desktop bridge if needed, and captures page screenshots. Without Desktop it reports a clear *blocked* state instead of pretending the report was verified.
+  - [M-query](https://learn.microsoft.com/en-us/powerquery-m/) dimension tables (`DimRegion`, `DimProduct`, …) with many-to-one relationships from fact tables.
+- **Validation**: runs [`powerbi-report-author validate`](https://www.npmjs.com/package/@microsoft/powerbi-report-authoring-cli) and surfaces errors/warnings in the sidebar.
+- **MCP verification**: when the EULA is accepted, the extension starts the local [Power BI Authoring MCP server](https://learn.microsoft.com/en-us/power-bi/developer/mcp/mcp-servers-overview), loads the generated TMDL, and reports table/measure counts.
+- **Preview**: detects [Power BI Desktop](https://powerbi.microsoft.com/desktop/) through the report CLI (including Microsoft Store/MSIX installs), opens the generated `.pbip` with the desktop bridge if needed, and captures page screenshots. Without Desktop it reports a clear *blocked* state instead of pretending the report was verified.
 
 ## Model compatibility rules
 
-The TMDL writer is deliberately conservative because PBIP/TMDL import is stricter than the PBIR schema:
+The [TMDL](https://learn.microsoft.com/en-us/analysis-services/tmdl/tmdl-overview) writer is deliberately conservative because [PBIP](https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-overview)/TMDL import is stricter than the [PBIR](https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-report#power-bi-enhanced-report-format-pbir) schema:
 
-- TMDL files are always written with **CRLF** line endings. Power BI Desktop's TMDL reader opens a blank `Untitled` window for LF-only files.
+- TMDL files are always written with **CRLF** line endings. [Power BI Desktop](https://powerbi.microsoft.com/desktop/)'s TMDL reader opens a blank `Untitled` window for LF-only files.
 - Generated models set `defaultPowerBIDataSourceVersion: powerBI_V3`.
 - **`isKey` is never written.** Power BI Desktop has no general primary-key concept; a column marked `isKey` makes **Refresh** fail with `Non-null assertion failure: query`. A post-build check also strips any `isKey` line that bypasses the writer.
-- CSV `File.Contents` paths use single backslashes; M string literals do not use backslash escapes.
-- Auto dimensions use M-query `Table.Distinct` partitions, not DAX calculated tables. Power BI Desktop 2.159 cannot reopen a PBIP whose relationship targets a calculated table, even when Desktop itself created that relationship.
+- CSV `File.Contents` paths use single backslashes; [M](https://learn.microsoft.com/en-us/powerquery-m/) string literals do not use backslash escapes.
+- Auto dimensions use [M-query](https://learn.microsoft.com/en-us/powerquery-m/) `Table.Distinct` partitions, not [DAX](https://learn.microsoft.com/en-us/dax/) calculated tables. Power BI Desktop 2.159 cannot reopen a PBIP whose relationship targets a calculated table, even when Desktop itself created that relationship.
 
 ## Tested environments
 
 | Environment | Notes |
 |---|---|
 | Local Windows development | Windows 11, VS Code 1.143, Node 24 (bundled runtime), Power BI Desktop 2.159 (Microsoft Store/MSIX). End-to-end mock/local/report flow, CLI validation, MCP load, and preview screenshots were exercised. |
-| Strata test environment | External-data-mode target provided by the operator. Use your Strata SQL Server/PostgreSQL/MySQL endpoint and database at runtime; credentials and endpoint details are intentionally **not** stored in this repository. Fabric workspace authoring is not wired yet. |
+| [Strata](https://github.com/Niko1221/Strata) local LLM runtime (operator test environment) | Strata is a free/open-source local LLM app and inference engine, **not** a database or SQL endpoint. It exposes OpenAI/Anthropic-compatible APIs on localhost; run `strata connect` for the exact base URL. Use it as the optional LLM backend for text/existing/image report modes; External SQL data mode remains separate. Model files, endpoints, and keys stay outside this repository. |
 
 ## Requirements
 
@@ -53,7 +53,19 @@ The TMDL writer is deliberately conservative because PBIP/TMDL import is stricte
 - Node.js 20+ for the extension host.
 - The report CLI and MCP are bundled into `dist/tools` at build time; a source checkout also needs `pnpm install`.
 - Optional: Power BI Desktop for rendered preview/screenshots.
-- Optional: GitHub Copilot Chat, or an OpenAI-compatible API key for LLM-assisted design.
+- Optional: GitHub Copilot Chat, an OpenAI-compatible API key, or a local [Strata](https://github.com/Niko1221/Strata) runtime for LLM-assisted design.
+
+### Optional local LLM with Strata
+
+[Strata](https://github.com/Niko1221/Strata) is an open-source local LLM runtime for Windows/Linux/macOS. It is **not** a SQL database; it exposes an OpenAI-compatible API on localhost for the extension's text/existing/image design steps.
+
+1. Install Strata and start a model, then run `strata connect` to get the local API base URL.
+2. Set `powerbiFlow.llm.provider` to `openai`.
+3. Set `powerbiFlow.llm.baseUrl` to the Strata base URL (for example `http://127.0.0.1:<port>/v1`).
+4. Set `powerbiFlow.llm.model` to the model name reported by Strata.
+5. If Strata requires an API key, run **Power BI: Set OpenAI-compatible API Key**.
+
+Image mode additionally requires a model that accepts image input. Endpoints, model files, and keys are not stored in this repository.
 
 ## Local deployment
 

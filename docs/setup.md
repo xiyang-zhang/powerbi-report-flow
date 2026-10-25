@@ -44,13 +44,26 @@ code --install-extension powerbi-report-flow-0.1.0.vsix
 Reload VS Code and open the **Power BI Report Flow** view. This is the
 recommended local/offline deployment; it does not require the Marketplace.
 
-### Strata test environment
+### Strata local LLM runtime
 
-Use **External** data mode with the SQL Server, PostgreSQL, or MySQL endpoint
-provided by your Strata test environment. Enter the server/database/table in the
-extension at runtime. The repository intentionally contains no Strata endpoint,
-workspace id, or credentials. Fabric workspace authoring is not wired into the
-UI yet; use Power BI Desktop/PBIP directly for Fabric-hosted models.
+[Strata](https://github.com/Niko1221/Strata) is an optional, open-source local
+LLM app/inference engine. It is **not** a SQL Server, PostgreSQL, or MySQL
+endpoint. Start a model in Strata and run `strata connect` to get its local
+OpenAI-compatible base URL, then set:
+
+- `powerbiFlow.llm.provider` = `openai`
+- `powerbiFlow.llm.baseUrl` = the URL printed by `strata connect` (usually a
+  localhost URL ending in `/v1`)
+- `powerbiFlow.llm.model` = the model name shown by Strata
+
+If Strata requires a token, store it with **Power BI: Set OpenAI-compatible API
+Key**. No Strata endpoint, model path, or credential is stored in the repository.
+Image mode needs a Strata model that accepts image input.
+
+External data mode is separate: use SQL Server, PostgreSQL, or MySQL profiling
+with an operator-provided database endpoint. Fabric workspace authoring is not
+wired into the UI yet; use Power BI Desktop/PBIP directly for Fabric-hosted
+models.
 
 ## 4. LLM provider
 
