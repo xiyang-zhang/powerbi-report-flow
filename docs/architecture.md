@@ -29,6 +29,7 @@ roles, formatting properties, and schema versions.
 - `src/data/mock.ts`: seeded PRNG and CSV generation.
 - `src/data/externalDb.ts`: SQL Server/PostgreSQL/MySQL profiling.
 - `src/data/infer.ts`: column profiling, basic measures, relationship inference.
+- `src/data/documents.ts`: attached text/Markdown/CSV/DOCX/image context for LLM-assisted design.
 
 ## Model builder
 
@@ -78,6 +79,7 @@ format errors that PBIR validation cannot see.
 ├─ definition.pbir
 ├─ definition/version.json
 ├─ definition/report.json
+├─ StaticResources/RegisteredResources/   (optional background images)
 └─ definition/pages/
    ├─ pages.json
    └─ <page>/
@@ -86,8 +88,18 @@ format errors that PBIR validation cannot see.
 ```
 
 Each placement is converted from the 12-column layout contract to pixel
-coordinates by `src/report/layout.ts`. Visual templates live in
-`src/report/visuals.ts`.
+coordinates by `src/report/layout.ts`. Visual templates and field-role mapping
+live in `src/report/visuals.ts` and `src/report/visualCatalog.ts`; unknown kinds
+are kept as their requested `visualType` instead of being silently converted to
+textboxes. `PageSpec.background` accepts a color or an image object. Background
+images are copied into `StaticResources/RegisteredResources` and registered in
+`definition/report.json` under `resourcePackages`, so the page JSON can reference
+them with `ResourcePackageItem`.
+
+Text mode's page count is clamped to 1–8; if the LLM returns fewer pages, the
+generator appends deterministic pages. Image mode can build one page per input
+image. Page backgrounds can be supplied as YAML/text through
+`applyBackgroundDeclarations()` and are merged before the report is written.
 
 ## Approval and safety
 

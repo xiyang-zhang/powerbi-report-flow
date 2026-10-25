@@ -1,196 +1,197 @@
 {
-    "name":  "powerbi-report-flow",
-    "displayName":  "Power BI Report Flow",
-    "description":  "Guided, automated Power BI report flow for VS Code: data profiling, semantic models, PBIR authoring, validation, and preview.",
-    "version":  "0.1.0",
-    "publisher":  "local",
-    "license":  "MIT",
-    "engines":  {
-                    "vscode":  "^1.100.0"
+    "name": "powerbi-report-flow",
+    "displayName": "Power BI Report Flow",
+    "description": "Guided, automated Power BI report flow for VS Code: data profiling, semantic models, PBIR authoring, validation, and preview.",
+    "version": "0.2.0",
+    "publisher": "local",
+    "license": "MIT",
+    "engines": {
+        "vscode": "^1.100.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "power bi",
+        "pbip",
+        "pbir",
+        "mcp",
+        "report"
+    ],
+    "activationEvents": [
+        "onView:powerbiReportFlow.main",
+        "onCommand:powerbiReportFlow.open",
+        "onCommand:powerbiReportFlow.generateSpec",
+        "onCommand:powerbiReportFlow.approveAndBuild",
+        "onCommand:powerbiReportFlow.validate",
+        "onCommand:powerbiReportFlow.preview",
+        "onCommand:powerbiReportFlow.openProject",
+        "onCommand:powerbiReportFlow.cancel",
+        "onCommand:powerbiReportFlow.checkDependencies",
+        "onCommand:powerbiReportFlow.setApiKey"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "powerbiReportFlow",
+                    "title": "Power BI Report Flow",
+                    "icon": "resources/icon.svg"
+                }
+            ]
+        },
+        "views": {
+            "powerbiReportFlow": [
+                {
+                    "type": "webview",
+                    "id": "powerbiReportFlow.main",
+                    "name": "Report Flow"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "powerbiReportFlow.open",
+                "title": "Power BI: Open Report Flow"
+            },
+            {
+                "command": "powerbiReportFlow.generateSpec",
+                "title": "Power BI: Generate Report Spec"
+            },
+            {
+                "command": "powerbiReportFlow.approveAndBuild",
+                "title": "Power BI: Approve and Build Report"
+            },
+            {
+                "command": "powerbiReportFlow.validate",
+                "title": "Power BI: Validate Report"
+            },
+            {
+                "command": "powerbiReportFlow.preview",
+                "title": "Power BI: Preview Report"
+            },
+            {
+                "command": "powerbiReportFlow.openProject",
+                "title": "Power BI: Open Generated PBIP"
+            },
+            {
+                "command": "powerbiReportFlow.cancel",
+                "title": "Power BI: Cancel Current Flow"
+            },
+            {
+                "command": "powerbiReportFlow.checkDependencies",
+                "title": "Power BI: Check Dependencies"
+            },
+            {
+                "command": "powerbiReportFlow.setApiKey",
+                "title": "Power BI: Set OpenAI-compatible API Key"
+            }
+        ],
+        "configuration": {
+            "title": "Power BI Report Flow",
+            "properties": {
+                "powerbiFlow.outputDir": {
+                    "type": "string",
+                    "default": "powerbi-flow",
+                    "description": "Workspace-relative directory where generated PBIP projects are written."
                 },
-    "categories":  [
-                       "Other"
-                   ],
-    "keywords":  [
-                     "power bi",
-                     "pbip",
-                     "pbir",
-                     "mcp",
-                     "report"
-                 ],
-    "activationEvents":  [
-                             "onView:powerbiReportFlow.main",
-                             "onCommand:powerbiReportFlow.open",
-                             "onCommand:powerbiReportFlow.generateSpec",
-                             "onCommand:powerbiReportFlow.approveAndBuild",
-                             "onCommand:powerbiReportFlow.validate",
-                             "onCommand:powerbiReportFlow.preview",
-                             "onCommand:powerbiReportFlow.openProject",
-                             "onCommand:powerbiReportFlow.cancel",
-                             "onCommand:powerbiReportFlow.checkDependencies",
-                             "onCommand:powerbiReportFlow.setApiKey"
-                         ],
-    "main":  "./dist/extension.js",
-    "contributes":  {
-                        "viewsContainers":  {
-                                                "activitybar":  [
-                                                                    {
-                                                                        "id":  "powerbiReportFlow",
-                                                                        "title":  "Power BI Report Flow",
-                                                                        "icon":  "resources/icon.svg"
-                                                                    }
-                                                                ]
-                                            },
-                        "views":  {
-                                      "powerbiReportFlow":  [
-                                                                {
-                                                                    "type":  "webview",
-                                                                    "id":  "powerbiReportFlow.main",
-                                                                    "name":  "Report Flow"
-                                                                }
-                                                            ]
-                                  },
-                        "commands":  [
-                                         {
-                                             "command":  "powerbiReportFlow.open",
-                                             "title":  "Power BI: Open Report Flow"
-                                         },
-                                         {
-                                             "command":  "powerbiReportFlow.generateSpec",
-                                             "title":  "Power BI: Generate Report Spec"
-                                         },
-                                         {
-                                             "command":  "powerbiReportFlow.approveAndBuild",
-                                             "title":  "Power BI: Approve and Build Report"
-                                         },
-                                         {
-                                             "command":  "powerbiReportFlow.validate",
-                                             "title":  "Power BI: Validate Report"
-                                         },
-                                         {
-                                             "command":  "powerbiReportFlow.preview",
-                                             "title":  "Power BI: Preview Report"
-                                         },
-                                         {
-                                             "command":  "powerbiReportFlow.openProject",
-                                             "title":  "Power BI: Open Generated PBIP"
-                                         },
-                                         {
-                                             "command":  "powerbiReportFlow.cancel",
-                                             "title":  "Power BI: Cancel Current Flow"
-                                         },
-                                         {
-                                             "command":  "powerbiReportFlow.checkDependencies",
-                                             "title":  "Power BI: Check Dependencies"
-                                         },
-                                         {
-                                             "command":  "powerbiReportFlow.setApiKey",
-                                             "title":  "Power BI: Set OpenAI-compatible API Key"
-                                         }
-                                     ],
-                        "configuration":  {
-                                              "title":  "Power BI Report Flow",
-                                              "properties":  {
-                                                                 "powerbiFlow.outputDir":  {
-                                                                                               "type":  "string",
-                                                                                               "default":  "powerbi-flow",
-                                                                                               "description":  "Workspace-relative directory where generated PBIP projects are written."
-                                                                                           },
-                                                                 "powerbiFlow.llm.provider":  {
-                                                                                                  "type":  "string",
-                                                                                                  "enum":  [
-                                                                                                               "copilot",
-                                                                                                               "openai"
-                                                                                                           ],
-                                                                                                  "default":  "copilot",
-                                                                                                  "description":  "LLM provider used for design contracts, DAX, and image analysis."
-                                                                                              },
-                                                                 "powerbiFlow.llm.model":  {
-                                                                                               "type":  "string",
-                                                                                               "default":  "",
-                                                                                               "description":  "Optional model id. Empty selects the first suitable model."
-                                                                                           },
-                                                                 "powerbiFlow.llm.baseUrl":  {
-                                                                                                 "type":  "string",
-                                                                                                 "default":  "https://api.openai.com/v1",
-                                                                                                 "description":  "OpenAI-compatible base URL (used when provider is openai)."
-                                                                                             },
-                                                                 "powerbiFlow.llm.visionModel":  {
-                                                                                                     "type":  "string",
-                                                                                                     "default":  "",
-                                                                                                     "description":  "Optional vision-capable model id for image report mode."
-                                                                                                 },
-                                                                 "powerbiFlow.preview.host":  {
-                                                                                                  "type":  "string",
-                                                                                                  "enum":  [
-                                                                                                               "auto",
-                                                                                                               "desktop",
-                                                                                                               "none"
-                                                                                                           ],
-                                                                                                  "default":  "auto",
-                                                                                                  "description":  "Preview host preference. auto uses Power BI Desktop when available."
-                                                                                              },
-                                                                 "powerbiFlow.mock.maxRows":  {
-                                                                                                  "type":  "number",
-                                                                                                  "default":  50000,
-                                                                                                  "description":  "Maximum rows generated per mock table."
-                                                                                              },
-                                                                 "powerbiFlow.model.autoDimensions":  {
-                                                                                                          "type":  "boolean",
-                                                                                                          "default":  true,
-                                                                                                          "description":  "Add dimension tables for categorical fact columns and relate them automatically."
-                                                                                                      },
-                                                                 "powerbiFlow.mcp.eulaAccepted":  {
-                                                                                                      "type":  "boolean",
-                                                                                                      "default":  false,
-                                                                                                      "description":  "Set to true after accepting the Power BI Authoring MCP EULA."
-                                                                                                  },
-                                                                 "powerbiFlow.telemetry":  {
-                                                                                               "type":  "boolean",
-                                                                                               "default":  false,
-                                                                                               "description":  "Reserved. No telemetry is collected by this extension."
-                                                                                           }
-                                                             }
-                                          }
-                    },
-    "scripts":  {
-                    "build":  "node esbuild.mjs",
-                    "watch":  "node esbuild.mjs --watch",
-                    "typecheck":  "tsc --noEmit",
-                    "test":  "vitest run",
-                    "test:watch":  "vitest",
-                    "privacy:check":  "node scripts/privacy-check.mjs",
-                    "package":  "vsce package --no-dependencies --allow-missing-repository"
+                "powerbiFlow.llm.provider": {
+                    "type": "string",
+                    "enum": [
+                        "copilot",
+                        "openai"
+                    ],
+                    "default": "copilot",
+                    "description": "LLM provider used for design contracts, DAX, and image analysis."
                 },
-    "dependencies":  {
-                         "@microsoft/powerbi-modeling-mcp":  "1.0.0",
-                         "@microsoft/powerbi-report-authoring-cli":  "0.5.0",
-                         "@modelcontextprotocol/sdk":  "1.32.2",
-                         "js-yaml":  "4.1.0",
-                         "papaparse":  "5.5.3",
-                         "xlsx":  "0.18.5",
-                         "zod":  "3.25.76"
-                     },
-    "optionalDependencies":  {
-                                 "mssql":  "11.0.1",
-                                 "mysql2":  "3.14.1",
-                                 "pg":  "8.16.0"
-                             },
-    "pnpm":  {
-                 "onlyBuiltDependencies":  [
-                                               "esbuild",
-                                               "keytar",
-                                               "@vscode/vsce-sign"
-                                           ]
-             },
-    "devDependencies":  {
-                            "@types/js-yaml":  "4.0.9",
-                            "@types/node":  "22.15.21",
-                            "@types/papaparse":  "5.3.16",
-                            "@types/vscode":  "1.100.0",
-                            "@vscode/vsce":  "3.6.0",
-                            "esbuild":  "0.25.5",
-                            "typescript":  "5.8.3",
-                            "vitest":  "3.1.4"
-                        }
+                "powerbiFlow.llm.model": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Optional model id. Empty selects the first suitable model."
+                },
+                "powerbiFlow.llm.baseUrl": {
+                    "type": "string",
+                    "default": "https://api.openai.com/v1",
+                    "description": "OpenAI-compatible base URL (used when provider is openai)."
+                },
+                "powerbiFlow.llm.visionModel": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Optional vision-capable model id for image report mode."
+                },
+                "powerbiFlow.preview.host": {
+                    "type": "string",
+                    "enum": [
+                        "auto",
+                        "desktop",
+                        "none"
+                    ],
+                    "default": "auto",
+                    "description": "Preview host preference. auto uses Power BI Desktop when available."
+                },
+                "powerbiFlow.mock.maxRows": {
+                    "type": "number",
+                    "default": 50000,
+                    "description": "Maximum rows generated per mock table."
+                },
+                "powerbiFlow.model.autoDimensions": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Add dimension tables for categorical fact columns and relate them automatically."
+                },
+                "powerbiFlow.mcp.eulaAccepted": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Set to true after accepting the Power BI Authoring MCP EULA."
+                },
+                "powerbiFlow.telemetry": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Reserved. No telemetry is collected by this extension."
+                }
+            }
+        }
+    },
+    "scripts": {
+        "build": "node esbuild.mjs",
+        "watch": "node esbuild.mjs --watch",
+        "typecheck": "tsc --noEmit",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "privacy:check": "node scripts/privacy-check.mjs",
+        "package": "vsce package --no-dependencies --allow-missing-repository"
+    },
+    "dependencies": {
+        "@microsoft/powerbi-modeling-mcp": "1.0.0",
+        "@microsoft/powerbi-report-authoring-cli": "0.5.0",
+        "@modelcontextprotocol/sdk": "1.32.2",
+        "js-yaml": "4.1.0",
+        "mammoth": "1.9.0",
+        "papaparse": "5.5.3",
+        "xlsx": "0.18.5",
+        "zod": "3.25.76"
+    },
+    "optionalDependencies": {
+        "mssql": "11.0.1",
+        "mysql2": "3.14.1",
+        "pg": "8.16.0"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "esbuild",
+            "keytar",
+            "@vscode/vsce-sign"
+        ]
+    },
+    "devDependencies": {
+        "@types/js-yaml": "4.0.9",
+        "@types/node": "22.15.21",
+        "@types/papaparse": "5.3.16",
+        "@types/vscode": "1.100.0",
+        "@vscode/vsce": "3.6.0",
+        "esbuild": "0.25.5",
+        "typescript": "5.8.3",
+        "vitest": "3.1.4"
+    }
 }

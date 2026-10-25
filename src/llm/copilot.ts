@@ -15,15 +15,16 @@ export class CopilotProvider implements LlmProvider {
     }
 
     const messages: any[] = request.messages.map((message) => vscode.LanguageModelChatMessage.User(message.content));
-    if (request.image) {
+    const images = request.images ?? (request.image ? [request.image] : []);
+    if (images.length > 0) {
       const dataPartCtor = (vscode as any).LanguageModelDataPart;
       if (!dataPartCtor?.image) {
         throw new Error("This VS Code version does not expose image input through the Language Model API.");
       }
-      const dataPart = dataPartCtor.image(request.image.data, request.image.mimeType);
+      const imageParts = images.map((image) => dataPartCtor.image(image.data, image.mimeType));
       messages[messages.length - 1] = vscode.LanguageModelChatMessage.User([
-        request.messages[request.messages.length - 1]?.content ?? "Describe the image.",
-        dataPart,
+        request.messages[request.messages.length - 1]?.content ?? "Describe the attached image(s).",
+        ...imageParts,
       ]);
     }
 

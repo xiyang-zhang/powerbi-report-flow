@@ -25,7 +25,8 @@ import { validateReport, previewReport } from "../report/validate";
 import { checkDependencies } from "./dependencies";
 import { CopilotProvider } from "../llm/copilot";
 import { OpenAiProvider } from "../llm/openai";
-import type { LlmProvider } from "../llm/provider";
+import type { LlmImage, LlmProvider } from "../llm/provider";
+import { readDocumentContext } from "../data/documents";
 import { loadSkillContext } from "../skills/loader";
 
 type Listener = (state: FlowState) => void;
@@ -39,7 +40,8 @@ export class FlowController {
   private readonly cli: ReportAuthorCli;
   private readonly mcp: PowerBiMcpBridge;
   private referenceProfile?: ReferenceProfile;
-  private imageData?: { data: Uint8Array; mimeType: "image/png" | "image/jpeg" | "image/webp" };
+  private imageData?: LlmImage;
+  private images: LlmImage[] = [];
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -95,11 +97,11 @@ export class FlowController {
       dataMode: "mock",
       reportMode: "text",
       seed: 42,
-      pageCount: 1,
+      pageCount: 3,
       tone: "clean, executive, high-contrast",
       audience: "business stakeholders",
       textBrief:
-        "Create a clear one-page overview with headline KPIs, one comparison or trend, and a detail table.",
+        "Create a multi-page analytical report with headline KPIs, a breakdown page, a trend page, and supporting detail.",
       mockSchema: {
         seed: 42,
         tables: [
@@ -203,6 +205,7 @@ export class FlowController {
       this.setPhase("spec", "Building the design contract…");
       this.referenceProfile = undefined;
       this.imageData = undefined;
+      this.images = [];
 
       if (this.config.reportMode === "existing") {
         if (!this.config.referenceReport) throw new Error("Select an existing PBIR report folder for reference mode.");
@@ -213,9 +216,29 @@ export class FlowController {
       }
 
       if (this.config.reportMode === "image") {
-        if (!this.config.imageFile) throw new Error("Select a PNG, JPEG, or WebP image for image report mode.");
-        this.imageData = await readImage(this.config.imageFile);
-        this.log(`Loaded image ${path.basename(this.config.imageFile)} (${this.imageData.mimeType}).`);
+        const imagePaths = this.config.imageFiles?.length
+          ? this.config.imageFiles
+          : this.config.imageFile
+            ? [this.config.imageFile]
+            : [];
+        if (imagePaths.length === 0) throw new Error("Select at least one PNG, JPEG, or WebP image for image report mode.");
+        for (const imagePath of imagePaths) {
+          const image = await readImage(imagePath);
+          this.images.push(image);
+          this.log(`Loaded image ${path.basename(imagePath)} (${image.mimeType}).`);
+        }
+      }
+
+      let contextText: string | undefined;
+      if (this.config.contextDocuments?.length) {
+        const documents = await readDocumentContext(this.config.contextDocuments);
+        contextText = documents.text || undefined;
+        for (const warning of documents.warnings) this.log(warning);
+        if (documents.text) this.log(`Loaded document context (${documents.text.length} characters).`);
+        if (documents.images.length > 0) {
+          this.images.push(...documents.images);
+          this.log(`Loaded ${documents.images.length} image(s) from attached documents.`);
+        }
       }
 
       const llm = await this.getLlmProvider();
@@ -225,7 +248,9 @@ export class FlowController {
         profile,
         llm,
         referenceProfile: this.referenceProfile,
-        image: this.imageData,
+        image: this.images[0],
+        images: this.images,
+        contextText,
         skillContext,
       });
       const spec = generated.spec;

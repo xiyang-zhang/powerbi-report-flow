@@ -15,14 +15,17 @@ export class OpenAiProvider implements LlmProvider {
     if (!this.apiKey) throw new Error("No API key is stored for the OpenAI-compatible provider.");
 
     const messages: unknown[] = request.messages.map((message) => ({ role: message.role, content: message.content }));
-    if (request.image) {
-      const base64 = Buffer.from(request.image.data).toString("base64");
+    const images = request.images ?? (request.image ? [request.image] : []);
+    if (images.length > 0) {
       const last = messages[messages.length - 1] as { role: string; content: unknown } | undefined;
-      const text = last?.content ?? "Describe the image.";
+      const text = last?.content ?? "Describe the attached image(s).";
       if (last) {
         last.content = [
           { type: "text", text },
-          { type: "image_url", image_url: { url: `data:${request.image.mimeType};base64,${base64}` } },
+          ...images.map((image) => ({
+            type: "image_url",
+            image_url: { url: `data:${image.mimeType};base64,${Buffer.from(image.data).toString("base64")}` },
+          })),
         ];
       }
     }

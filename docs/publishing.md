@@ -52,8 +52,8 @@ commit (or amend later):
 git config user.name "Your Name"
 git config user.email "you@example.com"
 git add -A
-git commit -m "Power BI Report Flow 0.1.0"
-git tag v0.1.0
+git commit -m "Power BI Report Flow 0.2.0"
+git tag v0.2.0
 ```
 
 ## 5. Add your remote
@@ -62,11 +62,11 @@ git tag v0.1.0
 git remote add origin <your-repo-url>
 git branch -M main
 git push -u origin main
-git push origin v0.1.0
+git push origin v0.2.0
 ```
 
 The extension VSIX is not committed. If you publish it, attach
-`powerbi-report-flow-0.1.0.vsix` to a GitHub Release rather than committing the
+`powerbi-report-flow-0.2.0.vsix` to a GitHub Release rather than committing the
 binary.
 
 ## 6. Version bumping

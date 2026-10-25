@@ -8,6 +8,8 @@ type WebviewMessage =
   | { type: "updateConfig"; config: Partial<FlowConfig> & { mockSchemaText?: string } }
   | { type: "pickLocalFile" }
   | { type: "pickImage" }
+  | { type: "pickImages" }
+  | { type: "pickDocuments" }
   | { type: "pickReference" }
   | { type: "generateSpec" }
   | { type: "approveBuild" }
@@ -94,12 +96,42 @@ export class FlowViewProvider implements vscode.WebviewViewProvider {
       }
       case "pickImage": {
         const picked = await vscode.window.showOpenDialog({
-          canSelectMany: false,
-          openLabel: "Use image",
+          canSelectMany: true,
+          openLabel: "Use image(s)",
           filters: { Images: ["png", "jpg", "jpeg", "webp"] },
         });
-        if (picked?.[0]) {
-          this.controller.updateConfig({ imageFile: picked[0].fsPath, reportMode: "image" });
+        if (picked && picked.length > 0) {
+          const imageFiles = picked.map((uri) => uri.fsPath);
+          this.controller.updateConfig({ imageFiles, imageFile: imageFiles[0], reportMode: "image" });
+          await this.postState();
+        }
+        return;
+      }
+      case "pickImages": {
+        const picked = await vscode.window.showOpenDialog({
+          canSelectMany: true,
+          openLabel: "Use image(s)",
+          filters: { Images: ["png", "jpg", "jpeg", "webp"] },
+        });
+        if (picked && picked.length > 0) {
+          const imageFiles = picked.map((uri) => uri.fsPath);
+          this.controller.updateConfig({ imageFiles, imageFile: imageFiles[0], reportMode: "image" });
+          await this.postState();
+        }
+        return;
+      }
+      case "pickDocuments": {
+        const picked = await vscode.window.showOpenDialog({
+          canSelectMany: true,
+          openLabel: "Attach documents",
+          filters: {
+            Documents: ["txt", "md", "markdown", "json", "yaml", "yml", "csv", "tsv", "xml", "html", "docx", "pdf"],
+            Images: ["png", "jpg", "jpeg", "webp"],
+            "All files": ["*"],
+          },
+        });
+        if (picked && picked.length > 0) {
+          this.controller.updateConfig({ contextDocuments: picked.map((uri) => uri.fsPath) });
           await this.postState();
         }
         return;
@@ -284,6 +316,9 @@ export class FlowViewProvider implements vscode.WebviewViewProvider {
 
   <section class="card">
     <h2>2. Report mode</h2>
+    <div class="row">
+      <label class="field compact"><span>Pages (1–8)</span><input id="pageCount" type="number" min="1" max="8" step="1" /></label>
+    </div>
     <div class="segmented" id="reportMode">
       <button data-value="text">Text</button>
       <button data-value="existing">Existing</button>
@@ -296,6 +331,9 @@ export class FlowViewProvider implements vscode.WebviewViewProvider {
         <label class="field compact"><span>Audience</span><input id="audience" type="text" /></label>
         <label class="field compact"><span>Tone</span><input id="tone" type="text" /></label>
       </div>
+      <p class="hint">Attach documents or reference images. Text, DOCX, and images are sent to the LLM as design context.</p>
+      <button class="secondary" id="pickDocuments">Attach documents / images…</button>
+      <div id="documentsLabel" class="path"></div>
     </div>
 
     <div id="panel-existing" class="panel">
@@ -305,10 +343,13 @@ export class FlowViewProvider implements vscode.WebviewViewProvider {
     </div>
 
     <div id="panel-image" class="panel">
-      <p class="hint">PNG, JPEG, or WebP. The vision model proposes layout and field mappings for review.</p>
-      <button class="secondary" id="pickImage">Choose image…</button>
+      <p class="hint">PNG, JPEG, or WebP. Select one or more images; each distinct dashboard page becomes a report page.</p>
+      <button class="secondary" id="pickImages">Choose image(s)…</button>
       <div id="imageLabel" class="path"></div>
     </div>
+
+    <label class="field"><span>Page backgrounds (YAML or text)</span><textarea id="backgroundYaml" rows="5" spellcheck="false" placeholder="overview:&#10;  image: assets/overview-bg.png&#10;  scaling: Fill&#10;breakdown:&#10;  color: &quot;#0B1F33&quot;"></textarea></label>
+    <p class="hint">Match pages by name, display name, or 1-based index. Use color, image, scaling (Fit/Fill/Tile/Normal), and transparency.</p>
   </section>
 
   <section class="card actions">

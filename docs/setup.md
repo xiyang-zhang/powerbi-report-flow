@@ -38,7 +38,7 @@ open the **Power BI Report Flow** Activity Bar view.
 ```bash
 pnpm build
 pnpm package
-code --install-extension powerbi-report-flow-0.1.0.vsix
+code --install-extension powerbi-report-flow-0.2.0.vsix
 ```
 
 Reload VS Code and open the **Power BI Report Flow** view. This is the
@@ -58,7 +58,7 @@ OpenAI-compatible base URL, then set:
 
 If Strata requires a token, store it with **Power BI: Set OpenAI-compatible API
 Key**. No Strata endpoint, model path, or credential is stored in the repository.
-Image mode needs a Strata model that accepts image input.
+Image mode accepts multiple images and needs a Strata model that accepts image input.
 
 External data mode is separate: use SQL Server, PostgreSQL, or MySQL profiling
 with an operator-provided database endpoint. Fabric workspace authoring is not
@@ -93,11 +93,25 @@ audit-log directory.
 
 1. Choose **Mock** data mode.
 2. Keep or edit the schema JSON and click **Apply schema**.
-3. Choose **Text** report mode and describe the report.
-4. Click **Generate spec**, review `_brief/report-spec.md`.
-5. Click **Approve & build**.
-6. Click **Validate**.
-7. If Power BI Desktop is installed, click **Preview / screenshots**.
+3. Choose **Text** report mode, set **Pages** (1–8), and describe the report.
+4. Optionally click **Choose document(s)…** to attach text/Markdown/CSV/DOCX/images for LLM context.
+5. Optionally paste per-page **Page backgrounds** YAML, for example:
+
+   ```yaml
+   overview:
+     image: assets/overview-bg.png
+     scaling: Fill
+   breakdown:
+     color: "#0B1F33"
+   ```
+
+   Relative image paths resolve from the generated project root. Images are copied into PBIR `RegisteredResources`.
+6. Click **Generate spec**, review `_brief/report-spec.md`.
+7. Click **Approve & build**.
+8. Click **Validate**.
+9. If Power BI Desktop is installed, click **Preview / screenshots**.
+
+For image mode, choose one or more screenshots; each distinct image can become a page. The configured vision model receives all selected images.
 
 ## 7. Troubleshooting
 

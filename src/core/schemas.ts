@@ -50,19 +50,7 @@ export const placementSchema = z.object({
   region: z.string(),
   slot: z.number().int().positive().optional(),
   of: z.number().int().positive().optional(),
-  kind: z.enum([
-    "cardVisual",
-    "barChart",
-    "columnChart",
-    "clusteredBarChart",
-    "clusteredColumnChart",
-    "lineChart",
-    "tableEx",
-    "pivotTable",
-    "slicer",
-    "textbox",
-    "shape",
-  ]),
+  kind: z.string().min(1),
   text: z.string().optional(),
   fieldBindings: z.array(fieldBindingSchema).default([]),
   color: z.string().optional(),
@@ -72,6 +60,16 @@ export const placementSchema = z.object({
   title: z.string().optional(),
 });
 
+export const pageBackgroundSchema = z.union([
+  z.string(),
+  z.object({
+    color: z.string().optional(),
+    image: z.string().optional(),
+    scaling: z.enum(["Fit", "Fill", "Tile", "Normal"]).optional(),
+    transparency: z.number().min(0).max(100).optional(),
+  }),
+]);
+
 export const pageSchema = z.object({
   name: z.string().min(1).max(50),
   displayName: z.string(),
@@ -79,7 +77,7 @@ export const pageSchema = z.object({
   canvas: z.object({ width: z.number().positive(), height: z.number().positive() }),
   regions: z.record(z.tuple([z.number(), z.number(), z.number(), z.number()])),
   placements: z.array(placementSchema),
-  background: z.string().optional(),
+  background: pageBackgroundSchema.optional(),
 });
 
 export const reportSpecSchema = z.object({

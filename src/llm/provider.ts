@@ -10,7 +10,9 @@ export interface LlmImage {
 
 export interface LlmRequest {
   messages: LlmMessage[];
+  /** Legacy single-image field; kept for compatibility. Prefer images. */
   image?: LlmImage;
+  images?: LlmImage[];
   json?: boolean;
   model?: string;
   maxTokens?: number;

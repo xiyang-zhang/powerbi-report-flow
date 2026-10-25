@@ -44,6 +44,7 @@ describe("FlowController end-to-end", () => {
       outputDir: "out",
       dataMode: "mock",
       reportMode: "text",
+      pageCount: 1,
       textBrief: "Create a one-page sales overview with KPIs and a detail table.",
       mockSchema: {
         seed: 3,

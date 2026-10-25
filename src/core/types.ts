@@ -72,18 +72,21 @@ export interface ModelSpec {
   parameters: ParameterSpec[];
 }
 
-export type VisualKind =
-  | "cardVisual"
-  | "barChart"
-  | "columnChart"
-  | "clusteredBarChart"
-  | "clusteredColumnChart"
-  | "lineChart"
-  | "tableEx"
-  | "pivotTable"
-  | "slicer"
-  | "textbox"
-  | "shape";
+/**
+ * PBIR stores the visual type as a string. Keeping this open lets the design
+ * contract target any native visual that the installed Desktop build knows,
+ * while `NATIVE_VISUAL_KINDS` in `report/visuals.ts` provides suggestions.
+ */
+export type VisualKind = string;
+
+export type BackgroundScaling = "Fit" | "Fill" | "Tile" | "Normal";
+
+export interface PageBackgroundSpec {
+  color?: string;
+  image?: string;
+  scaling?: BackgroundScaling;
+  transparency?: number;
+}
 
 export interface FieldBinding {
   table: string;
@@ -113,7 +116,7 @@ export interface PageSpec {
   canvas: { width: number; height: number };
   regions: Record<string, [number, number, number, number]>;
   placements: PlacementSpec[];
-  background?: string;
+  background?: string | PageBackgroundSpec;
 }
 
 export interface ReportSpec {
@@ -179,9 +182,16 @@ export interface FlowConfig {
   dataMode: "external" | "local" | "mock";
   reportMode: "existing" | "image" | "text";
   localFile?: string;
+  /** Legacy single-image field; kept so old settings/payloads still work. */
   imageFile?: string;
+  /** One or more reference images for image report mode. */
+  imageFiles?: string[];
   referenceReport?: string;
   textBrief?: string;
+  /** Text/YAML declarations for per-page backgrounds. */
+  backgroundYaml?: string;
+  /** Documents or images whose text and embedded images are sent to the LLM. */
+  contextDocuments?: string[];
   audience?: string;
   tone?: string;
   pageCount?: number;

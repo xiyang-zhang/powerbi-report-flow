@@ -1,6 +1,7 @@
 import path from "node:path";
-import { rm } from "node:fs/promises";
-import type { ReportSpec, TableSpec } from "../core/types";
+import { copyFile, rm, stat } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import type { PageBackgroundSpec, ReportSpec, TableSpec } from "../core/types";
 import { ensureDir, shortId, uuid, writeJson, writeText } from "../core/util";
 import { layoutPage } from "./layout";
 import { buildVisualJson } from "./visuals";
@@ -27,6 +28,18 @@ export async function createPbip(projectRoot: string, reportName: string): Promi
   return pbipPath;
 }
 
+function backgroundSpec(value: string | PageBackgroundSpec | undefined): PageBackgroundSpec | undefined {
+  if (!value) return undefined;
+  if (typeof value === "string") {
+    return value.startsWith("#") || /^(rgb|hsl)a?\(/i.test(value) ? { color: value } : { image: value };
+  }
+  return value;
+}
+
+function backgroundExpression(value: string): { expr: { Literal: { Value: string } } } {
+  return { expr: { Literal: { Value: `'${value.replace(/'/g, "''")}'` } } };
+}
+
 export async function buildReport(
   projectRoot: string,
   reportName: string,
@@ -35,8 +48,10 @@ export async function buildReport(
 ): Promise<ReportBuildResult> {
   const reportDir = path.join(projectRoot, `${reportName}.Report`);
   const pagesRoot = path.join(reportDir, "definition", "pages");
+  const resourcesDir = path.join(reportDir, "StaticResources", "RegisteredResources");
   await rm(pagesRoot, { recursive: true, force: true });
   await ensureDir(pagesRoot);
+  await rm(resourcesDir, { recursive: true, force: true });
 
   const pageNames: string[] = [];
   const usedPageNames = new Set<string>();
@@ -47,6 +62,38 @@ export async function buildReport(
     pageNames.push(candidate);
   }
   const warnings: string[] = [];
+  const resourceItems: Array<{ name: string; path: string; type: "Image" }> = [];
+  const pageBackgrounds = new Map<number, PageBackgroundSpec>();
+  for (const [index, page] of spec.pages.entries()) {
+    const configured = backgroundSpec(page.background);
+    if (!configured) continue;
+    const resolved: PageBackgroundSpec = { ...configured };
+    if (configured.image) {
+      const candidates = path.isAbsolute(configured.image)
+        ? [configured.image]
+        : [path.resolve(projectRoot, configured.image), path.resolve(reportDir, configured.image)];
+      const source = candidates.find((candidate) => existsSync(candidate));
+      if (!source) {
+        warnings.push(`Page ${page.displayName}: background image not found (${configured.image}).`);
+        delete resolved.image;
+      } else {
+        const extension = path.extname(source).toLowerCase();
+        if (![".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"].includes(extension)) {
+          warnings.push(`Page ${page.displayName}: unsupported background image type (${path.basename(source)}).`);
+          delete resolved.image;
+        } else {
+          await ensureDir(resourcesDir);
+          const itemName = `file${shortId(12)}${extension}`;
+          const target = path.join(resourcesDir, itemName);
+          await copyFile(source, target);
+          await stat(target);
+          resolved.image = itemName;
+          resourceItems.push({ name: itemName, path: itemName, type: "Image" });
+        }
+      }
+    }
+    pageBackgrounds.set(index, resolved);
+  }
   let visualCount = 0;
 
   for (let pageIndex = 0; pageIndex < spec.pages.length; pageIndex += 1) {
@@ -54,6 +101,34 @@ export async function buildReport(
     const pageName = pageNames[pageIndex]!;
     const pageDir = path.join(pagesRoot, pageName);
     await ensureDir(pageDir);
+    const configured = pageBackgrounds.get(pageIndex);
+    const backgroundProperties: Record<string, unknown> = {};
+    if (configured?.color) {
+      backgroundProperties.color = { solid: { color: backgroundExpression(configured.color) } };
+    }
+    if (typeof configured?.transparency === "number") {
+      const transparency = Math.max(0, Math.min(100, Math.round(configured.transparency)));
+      backgroundProperties.transparency = { expr: { Literal: { Value: `${transparency}D` } } };
+    } else {
+      backgroundProperties.transparency = { expr: { Literal: { Value: "0D" } } };
+    }
+    if (configured?.image) {
+      backgroundProperties.image = {
+        image: {
+          name: backgroundExpression(configured.image),
+          url: {
+            expr: {
+              ResourcePackageItem: {
+                PackageName: "RegisteredResources",
+                PackageType: 1,
+                ItemName: configured.image,
+              },
+            },
+          },
+          scaling: backgroundExpression(configured.scaling ?? "Fill"),
+        },
+      };
+    }
     await writeJson(path.join(pageDir, "page.json"), {
       $schema: "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
       name: pageName,
@@ -61,19 +136,8 @@ export async function buildReport(
       displayOption: "FitToPage",
       height: page.canvas.height,
       width: page.canvas.width,
-      ...(page.background
-        ? {
-            objects: {
-              background: [
-                {
-                  properties: {
-                    color: { solid: { color: { expr: { Literal: { Value: `'${page.background}'` } } } } },
-                    transparency: { expr: { Literal: { Value: "0D" } } },
-                  },
-                },
-              ],
-            },
-          }
+      ...(Object.keys(backgroundProperties).length > 0
+        ? { objects: { background: [{ properties: backgroundProperties }] } }
         : {}),
     });
 
@@ -141,6 +205,17 @@ export async function buildReport(
         reportVersionAtImport: { visual: "2.11.0", report: "3.4.0", page: "2.3.1" },
       },
     },
+    ...(resourceItems.length > 0
+      ? {
+          resourcePackages: [
+            {
+              name: "RegisteredResources",
+              type: "RegisteredResources",
+              items: resourceItems,
+            },
+          ],
+        }
+      : {}),
     settings: {
       useStylableVisualContainerHeader: true,
       exportDataMode: "AllowSummarized",

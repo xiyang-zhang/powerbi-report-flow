@@ -56,12 +56,20 @@ function renderConfig(): void {
   ($("projectName") as HTMLInputElement).value = config.projectName ?? "";
   ($("outputDir") as HTMLInputElement).value = config.outputDir ?? "powerbi-flow";
   ($("seed") as HTMLInputElement).value = String(config.seed ?? 42);
+  ($("pageCount") as HTMLInputElement).value = String(config.pageCount ?? 1);
   ($("textBrief") as HTMLTextAreaElement).value = config.textBrief ?? "";
   ($("audience") as HTMLInputElement).value = config.audience ?? "";
   ($("tone") as HTMLInputElement).value = config.tone ?? "";
+  ($("backgroundYaml") as HTMLTextAreaElement).value = config.backgroundYaml ?? "";
   ($("mockSchema") as HTMLTextAreaElement).value = config.mockSchema ? JSON.stringify(config.mockSchema, null, 2) : "";
   $("localFileLabel").textContent = config.localFile ?? "";
-  $("imageLabel").textContent = config.imageFile ?? "";
+  const imageFiles: string[] = Array.isArray(config.imageFiles) && config.imageFiles.length > 0
+    ? config.imageFiles
+    : config.imageFile
+      ? [config.imageFile]
+      : [];
+  $("imageLabel").textContent = imageFiles.join(", ");
+  $("documentsLabel").textContent = Array.isArray(config.contextDocuments) ? config.contextDocuments.join(", ") : "";
   $("referenceLabel").textContent = config.referenceReport ?? "";
   activeMode("dataMode", config.dataMode ?? "mock");
   activeMode("reportMode", config.reportMode ?? "text");
@@ -160,7 +168,11 @@ function collectConfig(): Record<string, any> {
     reportMode: config.reportMode,
     localFile: config.localFile,
     imageFile: config.imageFile,
+    imageFiles: config.imageFiles,
+    contextDocuments: config.contextDocuments,
     referenceReport: config.referenceReport,
+    pageCount: Number(($("pageCount") as HTMLInputElement).value || 1),
+    backgroundYaml: ($("backgroundYaml") as HTMLTextAreaElement).value,
     textBrief: ($("textBrief") as HTMLTextAreaElement).value,
     audience: ($("audience") as HTMLInputElement).value,
     tone: ($("tone") as HTMLInputElement).value,
@@ -209,7 +221,8 @@ for (const containerId of ["dataMode", "reportMode"]) {
 }
 
 $("pickLocalFile").addEventListener("click", () => send("pickLocalFile"));
-$("pickImage").addEventListener("click", () => send("pickImage"));
+$("pickImages").addEventListener("click", () => send("pickImages"));
+$("pickDocuments").addEventListener("click", () => send("pickDocuments"));
 $("pickReference").addEventListener("click", () => send("pickReference"));
 $("applyMock").addEventListener("click", () => send("updateConfig", { config: collectConfig() }));
 $("generateSpec").addEventListener("click", () => {
